@@ -1,6 +1,8 @@
 package com.example.limingwei.smartmonitor;
 
-
+/**
+ * Created by limingwei on 17/2/2.
+ */
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -12,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.Resources.NotFoundException;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -43,10 +46,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-
-/**
- * Created by limingwei on 17/2/2.
- */
 public class ActivityProcesses extends Activity {
     private int navigationBarHeight;
     // List
@@ -126,9 +125,7 @@ public class ActivityProcesses extends Activity {
             List<ActivityManager.RunningAppProcessInfo> runningAppProcesses;
             if (Build.VERSION.SDK_INT < 22) { // http://stackoverflow.com/questions/30619349/android-5-1-1-and-above-getrunningappprocesses-returns-my-application-packag
                 runningAppProcesses = ((ActivityManager) getSystemService(ACTIVITY_SERVICE)).getRunningAppProcesses();
-            } else {
-                runningAppProcesses = ProcessManager.getRunningAppProcessInfo(this);
-            }
+            } else runningAppProcesses = ProcessManager.getRunningAppProcessInfo(this);
 
             if (runningAppProcesses != null) {
                 int pid = Process.myPid();
@@ -137,8 +134,8 @@ public class ActivityProcesses extends Activity {
                         String name = null;
                         try {
                             name = (String) pm.getApplicationLabel(pm.getApplicationInfo(p.pkgList != null && p.pkgList.length > 0 ? p.pkgList[0] : p.processName, 0));
-                        } catch (PackageManager.NameNotFoundException e) {
-                        } catch (Resources.NotFoundException e) {
+                        } catch (NameNotFoundException e) {
+                        } catch (NotFoundException e) {
                         }
 
                         if (name == null)
@@ -178,7 +175,7 @@ public class ActivityProcesses extends Activity {
         if (mListProcesses == null || mListProcesses.isEmpty()) {
             mLV.setVisibility(View.GONE);
             findViewById(R.id.LProcessesProblem).setVisibility(View.VISIBLE);
-            ((TextView)findViewById(R.id.TVError)).setText(R.string.w_processes_android_51_problem);
+            ((TextView )findViewById(R.id.TVError)).setText(R.string.w_processes_android_51_problem);
             findViewById(R.id.BOK).setClickable(false);
             return;
         }

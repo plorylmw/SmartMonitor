@@ -1,5 +1,6 @@
 package com.example.limingwei.smartmonitor;
 
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
@@ -14,9 +15,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -25,9 +28,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Process;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewManager;
@@ -39,12 +45,14 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -72,8 +80,8 @@ public class ActivityMain extends Activity {
     private Resources res;
     private Button mBChooseProcess, mBMemory, mBRemoveAll;
     private ToggleButton mBHide;
-    //private ViewGraphic mVG;
-    //private SeekBar mSBRead;
+    private ViewGraphic mVG;
+    private SeekBar mSBRead;
     private PopupWindow mPWMenu;
     //	private RenderScript rs;
 //	private ScriptIntrinsicBlur intrinsic;
@@ -82,7 +90,81 @@ public class ActivityMain extends Activity {
     private Intent tempIntent;
     private Handler mHandler = new Handler(), mHandlerVG = new Handler();
     private Thread mThread;
+    private Runnable drawRunnable = new Runnable() {
+        @SuppressWarnings("unchecked")
+        @SuppressLint("NewApi")
+        @Override
+        public void run() {
+            mHandler.postDelayed(this, intervalUpdate);
+            if (mSR != null) { // finish() could have been called from the BroadcastReceiver
+                mHandlerVG.post(drawRunnableGraphic);
 
+                setTextLabelCPU(null, mTVCPUTotalP, mSR.getCPUTotalP());
+                if (processesMode == C.processesModeShowCPU)
+                    setTextLabelCPU(null, mTVCPUAMP, mSR.getCPUAMP());
+                else setTextLabelCPU(null, mTVCPUAMP, null, mSR.getMemoryAM());
+
+                setTextLabelMemory(mTVMemUsed, mTVMemUsedP, mSR.getMemUsed());
+                setTextLabelMemory(mTVMemAvailable, mTVMemAvailableP, mSR.getMemAvailable());
+                setTextLabelMemory(mTVMemFree, mTVMemFreeP, mSR.getMemFree());
+                setTextLabelMemory(mTVCached, mTVCachedP, mSR.getCached());
+                setTextLabelMemory(mTVThreshold, mTVThresholdP, mSR.getThreshold());
+
+                for (int n=0; n<mLProcessContainer.getChildCount(); ++n) {
+                    LinearLayout l = (LinearLayout) mLProcessContainer.getChildAt(n);
+                    setTextLabelCPUProcess(l);
+                    setTextLabelMemoryProcesses(l);
+                }
+            }
+        }
+    }, drawRunnableGraphic = new Runnable() { // http://stackoverflow.com/questions/18856376/android-why-cant-i-create-a-handler-in-new-thread
+        @Override
+        public void run() {
+            mThread = new Thread() {
+                @Override
+                public void run() {
+                    Canvas canvas = null;
+                    if (!canvasLocked) { // http://stackoverflow.com/questions/9792446/android-java-lang-illegalargumentexception
+                        canvas = mVG.lockCanvas();
+                        //canvas.save();
+                        if (canvas != null) {
+                            canvasLocked = true;
+                            mVG.onDrawCustomised(canvas, mThread);
+
+                            // https://github.com/AntonioRedondo/AnotherMonitor/issues/1
+                            // http://stackoverflow.com/questions/23893813/canvas-restore-causing-underflow-exception-in-very-rare-cases
+                            try {
+                                //canvas.restore();
+                                if(canvas!=null)
+                                    mVG.unlockCanvasAndPost(canvas);
+                            } catch (IllegalStateException e) {
+                                Log.w("Activity main: ", e.getMessage());
+                            }
+
+                            canvasLocked = false;
+                        }
+                    }
+                }
+            };
+            mThread.start();
+        }
+    }/*, drawRunnableGraphic = new Runnable() {
+		@Override
+		public void run() {
+			Canvas canvas;
+			Thread thisThread = Thread.currentThread();
+			while (drawThread == thisThread) {
+				canvas = mVG.lockCanvas();
+				mVG.onDrawCustomised(canvas);
+				mVG.unlockCanvasAndPost(canvas);
+				try {
+					Thread.sleep(intervalUpdate);
+				} catch (InterruptedException e) {
+					break;
+				}
+			}
+		}
+	}*/;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @SuppressLint("NewApi")
@@ -90,8 +172,8 @@ public class ActivityMain extends Activity {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mSR = ((ServiceReader.ServiceReaderDataBinder) service).getService();
 
-            //mVG.setService(mSR);
-            //mVG.setParameters(cpuTotal, cpuAM, memUsed, memAvailable, memFree, cached, threshold);
+            mVG.setService(mSR);
+            mVG.setParameters(cpuTotal, cpuAM, memUsed, memAvailable, memFree, cached, threshold);
 
             setIconRecording();
 
@@ -106,8 +188,8 @@ public class ActivityMain extends Activity {
             switchParameter(cached, mLCached);
             switchParameter(threshold, mLThreshold);
 
-            //mHandler.removeCallbacks(drawRunnable);
-            //mHandler.post(drawRunnable);
+            mHandler.removeCallbacks(drawRunnable);
+            mHandler.post(drawRunnable);
 
             // When on ActivityProcesses the screen is rotated, ActivityMain is destroyed and back is pressed from ActivityProcesses
             // mSR isn't ready before onActivityResult() is called. So the Intent is saved till mSR is ready.
@@ -170,6 +252,7 @@ public class ActivityMain extends Activity {
     @SuppressLint({ "InlinedApi", "NewApi", "InflateParams" })
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         startService(new Intent(this, ServiceReader.class));
         setContentView(R.layout.activity_main);
@@ -196,30 +279,30 @@ public class ActivityMain extends Activity {
         orientation = res.getConfiguration().orientation;
         statusBarHeight = res.getDimensionPixelSize(res.getIdentifier(C.sbh, C.dimen, C.android));
 
-        //final SeekBar mSBWidth = (SeekBar) findViewById(R.id.SBIntervalWidth);
+        final SeekBar mSBWidth = (SeekBar) findViewById(R.id.SBIntervalWidth);
         if (savedInstanceState != null && !savedInstanceState.isEmpty() && savedInstanceState.getInt(C.orientation) != orientation)
             orientationChanged = true;
 
 
-        //mVG = (ViewGraphic) findViewById(R.id.ANGraphic);
+        mVG = (ViewGraphic) findViewById(R.id.ANGraphic);
 
         graphicMode = mPrefs.getInt(C.graphicMode, C.graphicModeShowMemory);
-        //mVG.setGraphicMode(graphicMode);
+        mVG.setGraphicMode(graphicMode);
         mBHide = (ToggleButton) findViewById(R.id.BHideMemory);
         mBHide.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 graphicMode = graphicMode == C.graphicModeShowMemory ? C.graphicModeHideMemory : C.graphicModeShowMemory;
                 mPrefs.edit().putInt(C.graphicMode, graphicMode).commit();
-                //mVG.setGraphicMode(graphicMode);
+                mVG.setGraphicMode(graphicMode);
                 mBHide.setChecked(graphicMode == C.graphicModeShowMemory ? false : true);
-                //mHandlerVG.post(drawRunnableGraphic);
+                mHandlerVG.post(drawRunnableGraphic);
             }
         });
         mBHide.setChecked(graphicMode == C.graphicModeShowMemory ? false : true);
 
         processesMode = mPrefs.getInt(C.processesMode, C.processesModeShowCPU);
-        //mVG.setProcessesMode(processesMode);
+        mVG.setProcessesMode(processesMode);
         mBMemory = (Button) findViewById(R.id.BMemory);
         mBMemory.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -227,10 +310,10 @@ public class ActivityMain extends Activity {
                 processesMode = processesMode == C.processesModeShowCPU ? C.processesModeShowMemory : C.processesModeShowCPU;
                 mPrefs.edit().putInt(C.processesMode, processesMode).commit();
                 mBMemory.setText(processesMode == 0 ? getString(R.string.w_main_memory) : getString(R.string.p_cpuusage));
-                //mVG.setProcessesMode(processesMode);
-                //mHandlerVG.post(drawRunnableGraphic);
-                //mHandler.removeCallbacks(drawRunnable);
-                //mHandler.post(drawRunnable);
+                mVG.setProcessesMode(processesMode);
+                mHandlerVG.post(drawRunnableGraphic);
+                mHandler.removeCallbacks(drawRunnable);
+                mHandler.post(drawRunnable);
             }
         });
         mBMemory.setText(processesMode == 0 ? getString(R.string.w_main_memory) : getString(R.string.p_cpuusage));
@@ -254,15 +337,14 @@ public class ActivityMain extends Activity {
                 FrameLayout nb = (FrameLayout) findViewById(R.id.LNavigationBar);
                 nb.setVisibility(View.VISIBLE);
                 ((FrameLayout.LayoutParams) nb.getLayoutParams()).height = navigationBarHeight;
-                //((FrameLayout.LayoutParams) mVG.getLayoutParams()).setMargins(0, 0, 0, navigationBarHeight);
+                ((FrameLayout.LayoutParams) mVG.getLayoutParams()).setMargins(0, 0, 0, navigationBarHeight);
                 ((FrameLayout.LayoutParams) mLGraphicSurface.getLayoutParams()).setMargins(0, 0, 0, navigationBarHeight);
-                /*
+
                 int paddingTop = mSBWidth.getPaddingTop();
                 int paddingBottom = mSBWidth.getPaddingBottom();
                 int paddingLeft = mSBWidth.getPaddingLeft();
                 int paddingRight = mSBWidth.getPaddingRight();
                 mSBWidth.setPadding(paddingLeft, paddingTop, paddingRight, paddingBottom + navigationBarHeight);
-                */
             }
 
             int paddingTop = mLTopBar.getPaddingTop();
@@ -304,7 +386,7 @@ public class ActivityMain extends Activity {
                 if (mSR.isRecording())
                     mSR.stopRecord();
                 else mSR.startRecord();
-                //mHandlerVG.post(drawRunnableGraphic);
+                mHandlerVG.post(drawRunnableGraphic);
             }
         });
         mLButtonRecord.setOnLongClickListener(new View.OnLongClickListener() {
@@ -437,7 +519,7 @@ public class ActivityMain extends Activity {
 
 //		mIVSettingsBG = (ImageView) findViewById(R.id.IVSettingsBG);
 
-        /*mLSettings = (FrameLayout) findViewById(R.id.LSettings);
+        mLSettings = (FrameLayout) findViewById(R.id.LSettings);
         mLSettings.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -446,7 +528,7 @@ public class ActivityMain extends Activity {
                 mLSettings.getLayoutParams().height = 0;
 //				mIVSettingsBG.getLayoutParams().height = settingsHeight;
             }
-        });*/
+        });
 
         mLGraphicSurface.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -462,11 +544,61 @@ public class ActivityMain extends Activity {
             }
         });
 
-        //mVG.setOpaque(false); // http://stackoverflow.com/questions/18993355/semi-transparent-textureviews-not-working
+        mVG.setOpaque(false); // http://stackoverflow.com/questions/18993355/semi-transparent-textureviews-not-working
 
         // http://stackoverflow.com/questions/12688409/android-textureview-canvas-drawing-problems
         // https://groups.google.com/forum/?fromgroups=#!topic/android-developers/_Ogjc8sozpA
         // http://pastebin.com/J4uDgrZ8
+        mVG.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+/*				if (drawThread == null) {
+					drawThread = new Thread(drawRunnable3, C.drawThread);
+				}
+				drawThread.start();*/
+/*				mVG.getSurfaceTexture().setOnFrameAvailableListener( new SurfaceTexture.OnFrameAvailableListener() {
+					@Override
+					public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+						updateLayer();
+						invalidate();
+					}
+				});*/
+
+//				mHandlerVG.post(drawRunnableGraphic);
+            }
+
+            @Override
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+            }
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+/*				try {
+					drawThread.interrupt();
+					drawThread = null;
+				} catch (Exception e) {
+					e.printStackTrace();
+				}*/
+                return true;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            }
+
+        });
+        mVG.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mVG.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) mLGraphicSurface.getLayoutParams();
+//				xLeft = (int) (getWidth()*0.14);
+//				xRight = (int) (getWidth()*0.94);
+//				yTop = (int) (getHeight()*0.1);
+//				yBottom = (int) (getHeight()*0.88);
+                lp.setMargins((int) (mVG.getWidth()*0.14), (int) (mVG.getHeight()*0.1), (int) (mVG.getWidth()*0.06), (int) (mVG.getHeight()*0.12) + navigationBarHeight);
+            }
+        });
 
         mBChooseProcess = (Button) findViewById(R.id.BChooseProcess);
         mBChooseProcess.setOnClickListener(new View.OnClickListener() {
@@ -483,7 +615,7 @@ public class ActivityMain extends Activity {
             public void onClick(View v) {
                 mListSelected.clear(); // This also updates the List on ServiceReader because it is poiting to the same object
                 mLProcessContainer.removeAllViews();
-                //mHandlerVG.post(drawRunnableGraphic);
+                mHandlerVG.post(drawRunnableGraphic);
                 mBRemoveAll.animate().setDuration(300).alpha(0).setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -493,11 +625,193 @@ public class ActivityMain extends Activity {
             }
         });
 
+        final TextView mTVIntervalRead = (TextView) findViewById(R.id.TVIntervalRead);
+        mTVIntervalRead.setText(getString(R.string.interval_read) + " " + mFormatTime.format(intervalRead/(float)1000) + " s");
+        final TextView mTVIntervalUpdate = (TextView) findViewById(R.id.TVIntervalUpdate);
+        mTVIntervalUpdate.setText(getString(R.string.interval_update) + " " + mFormatTime.format(intervalUpdate/(float)1000) + " s");
+        final TextView mTVIntervalWidth = (TextView) findViewById(R.id.TVIntervalWidth);
+        mTVIntervalWidth.setText(getString(R.string.interval_width) + " " + intervalWidth + " dp");
+
+        mSBRead = (SeekBar) findViewById(R.id.SBIntervalRead);
+        int t = 0;
+        switch (intervalRead) {
+            case 500: t = 0; break;
+            case 1000: t = 1; break;
+            case 2000: t = 2; break;
+            case 4000: t = 4;
+        }
+        mSBRead.setProgress(t);
+        mSBRead.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                seekBar.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                int t = 0;
+                switch (mSBRead.getProgress()) {
+                    case 0: t = 500; break;
+                    case 1: t = 1000; break;
+                    case 2: t = 2000; break;
+                    case 3: t = 4000;
+                }
+                mTVIntervalRead.setText(getString(R.string.interval_read) + " " + mFormatTime.format(t/(float)1000) + " s");
+            }
+        });
+
+        final SeekBar mSBUpdate = (SeekBar) findViewById(R.id.SBIntervalUpdate);
+        t = 0;
+        switch (intervalUpdate) {
+            case 500: t = 0; break;
+            case 1000: t = 1; break;
+            case 2000: t = 2; break;
+            case 4000: t = 3;
+        }
+        mSBUpdate.setProgress(t);
+        mSBUpdate.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                seekBar.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                int t = 0;
+                switch (mSBUpdate.getProgress()) {
+                    case 0: t = 500; break;
+                    case 1: t = 1000; break;
+                    case 2: t = 2000; break;
+                    case 3: t = 4000;
+                }
+                mTVIntervalUpdate.setText(getString(R.string.interval_update) + " " + mFormatTime.format(t/(float)1000) + " s");
+            }
+        });
+
+        t = 0;
+        switch (intervalWidth) {
+            case 1: t = 0; break;
+            case 2: t = 1; break;
+            case 5: t = 2; break;
+            case 10: t = 4;
+        }
+        mSBWidth.setProgress(t);
+        mSBWidth.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                seekBar.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                int t = 0;
+                switch (mSBWidth.getProgress()) {
+                    case 0: t = 1; break;
+                    case 1: t = 2; break;
+                    case 2: t = 5; break;
+                    case 3: t = 10;
+                }
+                mTVIntervalWidth.setText(getString(R.string.interval_width) + " " + t + " dp");
+            }
+        });
+
+        mCloseSettings = (FrameLayout) findViewById(R.id.LOK);
+        mCloseSettings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideSettings();
+
+                int intervalWidth = 0, intervalRead = 0, intervalUpdate = 0;
+
+                switch (mSBRead.getProgress()) {
+                    case 0: intervalRead = 500; break;
+                    case 1: intervalRead = 1000; break;
+                    case 2: intervalRead = 2000; break;
+                    case 3: intervalRead = 4000;
+                }
+
+                switch (mSBUpdate.getProgress()) {
+                    case 0: intervalUpdate = 500; break;
+                    case 1: intervalUpdate = 1000; break;
+                    case 2: intervalUpdate = 2000; break;
+                    case 3: intervalUpdate = 4000;
+                }
+
+                switch (mSBWidth.getProgress()) {
+                    case 0: intervalWidth = 1; break;
+                    case 1: intervalWidth = 2; break;
+                    case 2: intervalWidth = 5; break;
+                    case 3: intervalWidth = 10;
+                }
+
+                if (intervalRead > intervalUpdate) {
+                    intervalUpdate = intervalRead;
+                    int t = 0;
+                    switch (intervalUpdate) {
+                        case 500: t = 0; break;
+                        case 1000: t = 1; break;
+                        case 2000: t = 2; break;
+                        case 4000: t = 3;
+                    }
+                    mSBUpdate.setProgress(t);
+                }
+
+                if (ActivityMain.this.intervalRead != intervalRead) {
+                    mSR.getCPUTotalP().clear();
+                    mSR.getCPUAMP().clear();
+
+                    if (mListSelected != null && !mListSelected.isEmpty())
+                        for (Map<String, Object> process : mListSelected) {
+                            process.put(C.pFinalValue, new ArrayList<Float>());
+                            process.put(C.pTPD, new ArrayList<Integer>());
+                        }
+
+                    mSR.getMemUsed().clear();
+                    mSR.getMemAvailable().clear();
+                    mSR.getMemFree().clear();
+                    mSR.getCached().clear();
+                    mSR.getThreshold().clear();
+                }
+
+                ActivityMain.this.intervalRead = intervalRead;
+                ActivityMain.this.intervalUpdate = intervalUpdate;
+                ActivityMain.this.intervalWidth = intervalWidth;
+
+                mSR.setIntervals(intervalRead, intervalUpdate, intervalWidth);
+                mVG.calculateInnerVariables();
+                mHandlerVG.post(drawRunnableGraphic);
+                mHandler.removeCallbacks(drawRunnable);
+                mHandler.post(drawRunnable);
+                mPrefs.edit()
+                        .putInt(C.intervalRead, intervalRead)
+                        .putInt(C.intervalUpdate, intervalUpdate)
+                        .putInt(C.intervalWidth, intervalWidth)
+                        .commit();
+            }
+        });
 
         if (savedInstanceState != null && !savedInstanceState.isEmpty()) {
             processesMode = savedInstanceState.getInt(C.processesMode);
             mBMemory.setText(processesMode == C.processesModeShowCPU ? getString(R.string.w_main_memory) : getString(R.string.p_cpuusage));
-            //mVG.setProcessesMode(processesMode);
+            mVG.setProcessesMode(processesMode);
 
             canvasLocked = savedInstanceState.getBoolean(C.canvasLocked);
             settingsShown = savedInstanceState.getBoolean(C.settingsShown);
@@ -701,14 +1015,14 @@ public class ActivityMain extends Activity {
 
                 .commit();
 
-        //mVG.setParameters(cpuTotal, cpuAM, memUsed, memAvailable, memFree, cached, threshold);
+        mVG.setParameters(cpuTotal, cpuAM, memUsed, memAvailable, memFree, cached, threshold);
 
         ImageView icon = (ImageView) labelRow.getChildAt(0);
         if (draw)
             icon.setImageResource(R.drawable.icon_play);
         else icon.setImageResource(R.drawable.icon_pause);
 
-        //mHandlerVG.post(drawRunnableGraphic);
+        mHandlerVG.post(drawRunnableGraphic);
     }
 
 
@@ -740,7 +1054,7 @@ public class ActivityMain extends Activity {
             iv.setImageResource(R.drawable.icon_pause);
         }
 
-        //mHandlerVG.post(drawRunnableGraphic);
+        mHandlerVG.post(drawRunnableGraphic);
     }
 
 
@@ -813,11 +1127,11 @@ public class ActivityMain extends Activity {
         if (mSR == null) // This can happen when stopping and closing the app from the system bar action button.
             return;
         if (mSR.isRecording()) {
-            //mSBRead.setEnabled(false);
+            mSBRead.setEnabled(false);
             mBChooseProcess.setEnabled(false);
             mLButtonRecord.setImageResource(R.drawable.button_stop_record);
         } else {
-            //mSBRead.setEnabled(true);
+            mSBRead.setEnabled(true);
             mBChooseProcess.setEnabled(true);
             mLButtonRecord.setImageResource(R.drawable.button_start_record);
         }
@@ -948,7 +1262,7 @@ public class ActivityMain extends Activity {
                     Drawable d = null;
                     try {
                         d = getPackageManager().getApplicationIcon((String) process.get(C.pPackage));
-                    } catch (PackageManager.NameNotFoundException e) {
+                    } catch (NameNotFoundException e) {
                     }
 
                     ImageView pIcon = (ImageView) l.getChildAt(1);
@@ -1015,6 +1329,7 @@ public class ActivityMain extends Activity {
 
 
 
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putInt(C.orientation, orientation);
@@ -1043,8 +1358,8 @@ public class ActivityMain extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        //mHandler.removeCallbacks(drawRunnable);
-        //mHandler.post(drawRunnable);
+        mHandler.removeCallbacks(drawRunnable);
+        mHandler.post(drawRunnable);
     }
 
 
@@ -1058,7 +1373,7 @@ public class ActivityMain extends Activity {
             mThread.interrupt();
             mThread = null;
         }
-        //mHandler.removeCallbacks(drawRunnable);
+        mHandler.removeCallbacks(drawRunnable);
     }
 
 
@@ -1072,7 +1387,7 @@ public class ActivityMain extends Activity {
             mThread.interrupt();
             mThread = null;
         }
-        //mHandler.removeCallbacks(drawRunnable);
+        mHandler.removeCallbacks(drawRunnable);
     }
 
 
@@ -1087,7 +1402,7 @@ public class ActivityMain extends Activity {
             mThread.interrupt();
             mThread = null;
         }
-        //mHandler.removeCallbacks(drawRunnable);
+        mHandler.removeCallbacks(drawRunnable);
         if (mPWMenu.isShowing()) // To avoid android.view.WindowLeaked exception
             mPWMenu.dismiss();
         unregisterReceiver(receiverSetIconRecord);

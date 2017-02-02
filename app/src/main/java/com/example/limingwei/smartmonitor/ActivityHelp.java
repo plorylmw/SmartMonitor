@@ -1,5 +1,8 @@
 package com.example.limingwei.smartmonitor;
 
+/**
+ * Created by limingwei on 17/2/2.
+ */
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -19,10 +22,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/**
- * Created by limingwei on 17/2/2.
- */
 public class ActivityHelp extends Activity {
+
     private BroadcastReceiver receiverFinish = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {

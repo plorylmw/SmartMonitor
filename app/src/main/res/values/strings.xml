@@ -150,9 +150,7 @@
     <string name="about_title">About</string>
 	<string name="about_text_title">
 		<big><b>SmartMonitor</b> v1.0.0</big>
-		\nhttps://github.com/AntonioRedondo/AnotherMonitor
-		\n\n© 2010&#8211;2016 Antonio Redondo
-		\nhttp://antonioredondo.com
+		\nhttps://github.com/plorylmw/SmartMonitor
 		\n\nPublished under the
 		\nGNU General Public License v3
 		\n\nChuck Norris approves this application.</string>
@@ -160,8 +158,6 @@
 		\n\nAnotherMonitor monitors and records the CPU usage and memory parameters of Android devices.
 		\n\nChuck Norris approves this application.
 	</string>
-    <string name="about_feedback_text">Write or edit your review</string>
-    <string name="about_feedback_button">AnotherMonitor on Google Play</string>
     <string name="about_gnugpl_text">GNU General Public License v3</string>
     <string name="about_gnugpl_link">https://gnu.org/licenses/gpl.html</string>
     <string name="cd_paramter_status_icon">Parameter status icon</string>

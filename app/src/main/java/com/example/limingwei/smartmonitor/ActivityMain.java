@@ -7,7 +7,6 @@ import android.animation.LayoutTransition;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -22,7 +21,6 @@ import android.graphics.Canvas;
 import android.graphics.SurfaceTexture;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -886,7 +884,7 @@ public class ActivityMain extends Activity {
                     bottomMargin = navigationBarHeight;
                 ((FrameLayout.LayoutParams) mLFeedback.getLayoutParams()).setMargins(0, 0, 0, (int)(35*sD) + bottomMargin);
 
-                (mLFeedback.findViewById(R.id.BFeedbackYes)).setOnClickListener(new View.OnClickListener() {
+                /*(mLFeedback.findViewById(R.id.BFeedbackYes)).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         mPrefs.edit().putBoolean(C.feedbackDone, true).commit();
@@ -906,7 +904,7 @@ public class ActivityMain extends Activity {
                             }
                         }).setStartDelay(0).alpha(0).translationYBy(-15*sD);
                     }
-                });
+                });*/
                 (mLFeedback.findViewById(R.id.BFeedbackDone)).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {

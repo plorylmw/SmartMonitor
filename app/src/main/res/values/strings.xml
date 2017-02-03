@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SmartMonitor</string>
-    <string name="google_play_app_site">https://play.google.com/store/apps/details?id=org.anothermonitor</string>
     <string name="anim_time">100</string>
-    <string name="notify_read">AnotherMonitor is reading values</string>
+    <string name="notify_read">SmartMonitor is reading values</string>
     <string name="notify_read2">Reading values in the background</string>
-    <string name="notify_record">AnotherMonitor is recording values</string>
+    <string name="notify_record">SmartMonitor is recording values</string>
     <string name="notify_record2">Recording values in the background</string>
-    <string name="notify_toast_saved">saved in the folder \'AnotherMonitor\'.</string>
+    <string name="notify_toast_saved">saved in the folder \'SmartMonitor\'.</string>
     <string name="notify_toast_error">An error happened when saving the CSV file:</string>
     <string name="notify_toast_error_2">It hasn\'t been possible to start recording:</string>
     <string name="w_main_choose_process">Choose other process(es)</string>
@@ -16,7 +15,7 @@
     <string name="w_main_hide">Hide</string>
     <string name="w_main_remove_all">Remove All</string>
     <string name="w_main_feedback_title">Just one second ;)</string>
-    <string name="w_main_feedback_text">You\'ve been using AnotherMonitor for a while.
+    <string name="w_main_feedback_text">You\'ve been using SmartMonitor for a while.
         \n\nYour feedback is invaluable to improve the app. Would you like to rate the app on Google Play? (It\'s 30 seconds).</string>
     <string name="w_main_feedback_yes">Yes</string>
     <string name="w_main_feedback_done">I\'ve already done it</string>
@@ -46,8 +45,8 @@
         \n\nYou can see the total CPU and memory usage of all processes currently running on the system.
 		If the device has more than one core the CPU usage will be the sume of all cores\' CPU usage.
 		Add processes by pressing \'Choose other process(es)\' button.
-        AnotherMonitor process will always be shown in the list. Switch between CPU and memory usage by pressing the \'Memory\' button.
-        The memory monitored and shown by AnotherMonitor is the Total Private Dirty.
+        SmartMonitor process will always be shown in the list. Switch between CPU and memory usage by pressing the \'Memory\' button.
+        The memory monitored and shown by SmartMonitor is the Total Private Dirty.
         If Android kills a process due to low memory
         or the process finishes itself, \'DEAD\' will be shown.
         You can disable or re-enable showing the process on the graph by pressing its label.
@@ -57,7 +56,7 @@
         \n\nMore info about CPU usage in Linux:
         \n- http://stackoverflow.com/questions/1420426/calculating-cpu-usage-of-a-process-in-linux
         \n\n<big><b>Memory</b></big>
-        \n\nAnotherMonitor shows on screen the device\'s most relevant memory parameters. They are both parameterts related with Linux and Android:
+        \n\nSmartMonitor shows on screen the device\'s most relevant memory parameters. They are both parameterts related with Linux and Android:
         \n\n<b>Mem used</b>: the memory which is already in use by the system.
         \n\n<b>Mem available</b>: the available memory on the system. This number should not be considered absolute: due to the nature of
         the kernel, a significant portion of this memory is actually in use and needed for the overall system to run well. <b>Mem available</b> is
@@ -75,13 +74,13 @@
                   \n- https://en.wikipedia.org/wiki/Procfs
                   \n- https://www.kernel.org/doc/Documentation/filesystems/proc.txt
         \n\n<big><b>Recording</b></big>
-        \n\nAnotherMonitor can record in a CSV file the CPU usage and memory values for later usage and processing in a spreadsheet program.
+        \n\nSmartMonitor can record in a CSV file the CPU usage and memory values for later usage and processing in a spreadsheet program.
         Just press the circular red button on the main window to start recording. Then you can select and add other app process
-        to the graph by pressing the \'Choose other process(es)\' button and then bring the app to the foreground. AnotherMonitor will record the CPU usage of that app while it is being used.
-        To stop recording just press the white square icon or press the \'Stop and save\' action button from the AnotherMonitor entry in the system bar.
+        to the graph by pressing the \'Choose other process(es)\' button and then bring the app to the foreground. SmartMonitor will record the CPU usage of that app while it is being used.
+        To stop recording just press the white square icon or press the \'Stop and save\' action button from the SmartMonitor entry in the system bar.
         Values will be recorded at the pace indicated in the \'Read interval\' setting of the \'Settings\' panel.
-        \n\nWhen recording, AnotherMonitor writes all the CPU usage and memory parameters to disk no matter whether they are being shown on the graph or not.
-        \n\nThe recorded files are saved on the SD space of your device in the \'AnotherMonitor\' folder.</string>
+        \n\nWhen recording, SmartMonitor writes all the CPU usage and memory parameters to disk no matter whether they are being shown on the graph or not.
+        \n\nThe recorded files are saved on the SD space of your device in the \'SmartMonitor\' folder.</string>
     <string name="menu_record">Record</string>
     <string name="menu_record_description">Starts recording memory and CPU parameters in the background</string>
     <string name="menu_record_stop_description">Stops recording and saves CSV file</string>
@@ -108,7 +107,7 @@
     <string name="tab_show">Show/Record</string>
 	<string name="tab_show_text">Select the parameters you want to be shown on the graph.
 	    These parameters will be the same that will be recorded when the recording mode is on.
-	    \n\nThe generated CSV files are saved on the \'data/data/org.anothermonitor/files\' folder.
+	    \n\nThe generated CSV files are saved on the \'data/data/org.smartmonitor/files\' folder.
 	    \n\nYou can also check/uncheck these parameters stright from the main window by pushing on the name of the parameters.</string>
     <string name="tab_show_select_all">Select All</string>
     <string name="tab_show_unselect_all">Unselect All</string>
@@ -138,7 +137,7 @@
     </string-array>
     <string name="p_cpuusage">CPU Usage</string>
     <string name="p_cputotalusage">Total CPU usage</string>
-    <string name="p_cpuanothermonitor">AnotherMonitor</string>
+    <string name="p_cpusmartmonitor">SmartMonitor</string>
     <string name="p_memtotal">Memory</string>
     <string name="p_memused">Mem used</string>
     <string name="p_memavailable">Mem available</string>
@@ -151,11 +150,9 @@
 	<string name="about_text_title">
 		<big><b>SmartMonitor</b> v1.0.0</big>
 		\nhttps://github.com/plorylmw/SmartMonitor
-		\n\nPublished under the
-		\nGNU General Public License v3
-		\n\nChuck Norris approves this application.</string>
+		\nTODO</string>
 	<string name="about_text">
-		\n\nAnotherMonitor monitors and records the CPU usage and memory parameters of Android devices.
+		\n\nSmartMonitor monitors and records the CPU usage and memory parameters of Android devices.
 		\n\nChuck Norris approves this application.
 	</string>
     <string name="about_gnugpl_text">GNU General Public License v3</string>

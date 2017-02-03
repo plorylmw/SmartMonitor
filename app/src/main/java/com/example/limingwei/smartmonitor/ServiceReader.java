@@ -75,28 +75,13 @@ public class ServiceReader extends Service {
                 read();
                 try {
                     Thread.sleep(intervalRead);
-/*					synchronized (this) {
-						while (readThread == thisThread && threadSuspended)
-							wait();
-					}*/
                 } catch (InterruptedException e) {
                     break;
                 }
-
-                // The Runnable can be suspended and resumed with the below code:
-//		        threadSuspended = !threadSuspended;
-//		        if (!threadSuspended)
-//		            notify();
             }
         }
-
-/*		public synchronized void stop() {
-			readThread = null;
-			notify();
-		}*/
-
-
     };
+
     private volatile Thread readThread = new Thread(readRunnable, C.readThread);
     private BroadcastReceiver receiverStartRecord = new BroadcastReceiver() {
         @Override
@@ -451,7 +436,7 @@ public class ServiceReader extends Service {
     private void record() {
         if (mW == null) {
 
-            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/AnotherMonitor");
+            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SmartMonitor");
             dir.mkdirs();
             mFile = new File(dir, new StringBuilder().append(getString(R.string.app_name)).append("Record-").append(getDate()).append(".csv").toString());
 
@@ -473,7 +458,7 @@ public class ServiceReader extends Service {
                         .append(intervalRead)
                         .append(",MemTotal (kB),")
                         .append(memTotal)
-                        .append("\nTotal CPU usage (%),AnotherMonitor (Pid ").append(Process.myPid()).append(") CPU usage (%),AnotherMonitor Memory (kB)");
+                        .append("\nTotal CPU usage (%),SmartMonitor (Pid ").append(Process.myPid()).append(") CPU usage (%),SmartMonitor Memory (kB)");
                 if (mListSelected != null && !mListSelected.isEmpty())
                     for (Map<String, Object> p : mListSelected)
                         sb.append(",").append(p.get(C.pAppName)).append(" (Pid ").append(p.get(C.pId)).append(") CPU usage (%)")

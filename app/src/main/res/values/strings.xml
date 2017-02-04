@@ -38,49 +38,7 @@
     <string name="w_processes_first_time">You can remove a process from the list by performing a long click on its label.</string>
     <string name="w_processes_select_some_process">Please select some process(es).</string>
     <string name="w_help_title">Some explanations?</string>
-    <string name="w_help_text">In the main window you can open the Settings panel by pressing the graph.
-        There you can set the \'Read interval\', the \'Update interval\' and the \'Graph interval width\' settings.
-        The \'Real interval\' setting cannot be modified when the app is recording.
-        \n\n<big><b>Processes</b></big>
-        \n\nYou can see the total CPU and memory usage of all processes currently running on the system.
-		If the device has more than one core the CPU usage will be the sume of all cores\' CPU usage.
-		Add processes by pressing \'Choose other process(es)\' button.
-        SmartMonitor process will always be shown in the list. Switch between CPU and memory usage by pressing the \'Memory\' button.
-        The memory monitored and shown by SmartMonitor is the Total Private Dirty.
-        If Android kills a process due to low memory
-        or the process finishes itself, \'DEAD\' will be shown.
-        You can disable or re-enable showing the process on the graph by pressing its label.
-        You can remove the process from the list by performing a long press on its label.
-        \n\nIn order to get CPU usage the app does not make use of the \'Top\' Linux command but instead it parses the
-        \'/proc/stat\' file and does calculations with the user and system time.
-        \n\nMore info about CPU usage in Linux:
-        \n- http://stackoverflow.com/questions/1420426/calculating-cpu-usage-of-a-process-in-linux
-        \n\n<big><b>Memory</b></big>
-        \n\nSmartMonitor shows on screen the device\'s most relevant memory parameters. They are both parameterts related with Linux and Android:
-        \n\n<b>Mem used</b>: the memory which is already in use by the system.
-        \n\n<b>Mem available</b>: the available memory on the system. This number should not be considered absolute: due to the nature of
-        the kernel, a significant portion of this memory is actually in use and needed for the overall system to run well. <b>Mem available</b> is
-        the sum of <b>MemFree</b> and <b>Cached</b>.
-        \n\n<b>MemFree</b>: The sum of <b>LowFree</b> plus <b>HighFree</b> (not shown on the graph since they\'re not relevant in terms of app developing).
-        By default this parameter is disabled on the graph.
-        \n\n<b>Cached</b>: in-memory cache for files read from the disk (the pagecache). By default this parameter is disabled on the graph.
-        \n\n<b>Threshold</b>: The threshold of <b>Mem available</b> at which Android considers memory to be low and start killing background services and other
-        non-extraneous processes. This is a parameter exclusive for Android not present on Linux.
-        \n\nFind more information about memory:
-        \n<b>In Android:</b>
-                  \n- http://developer.android.com/tools/debugging/debugging-memory.html
-                  \n- http://developer.android.com/reference/android/app/ActivityManager.MemoryInfo.html
-        \n<b>In Linux:</b>
-                  \n- https://en.wikipedia.org/wiki/Procfs
-                  \n- https://www.kernel.org/doc/Documentation/filesystems/proc.txt
-        \n\n<big><b>Recording</b></big>
-        \n\nSmartMonitor can record in a CSV file the CPU usage and memory values for later usage and processing in a spreadsheet program.
-        Just press the circular red button on the main window to start recording. Then you can select and add other app process
-        to the graph by pressing the \'Choose other process(es)\' button and then bring the app to the foreground. SmartMonitor will record the CPU usage of that app while it is being used.
-        To stop recording just press the white square icon or press the \'Stop and save\' action button from the SmartMonitor entry in the system bar.
-        Values will be recorded at the pace indicated in the \'Read interval\' setting of the \'Settings\' panel.
-        \n\nWhen recording, SmartMonitor writes all the CPU usage and memory parameters to disk no matter whether they are being shown on the graph or not.
-        \n\nThe recorded files are saved on the SD space of your device in the \'SmartMonitor\' folder.</string>
+    <string name="w_help_text">TODO</string>
     <string name="menu_record">Record</string>
     <string name="menu_record_description">Starts recording memory and CPU parameters in the background</string>
     <string name="menu_record_stop_description">Stops recording and saves CSV file</string>

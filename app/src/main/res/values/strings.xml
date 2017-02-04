@@ -38,7 +38,7 @@
     <string name="w_processes_first_time">You can remove a process from the list by performing a long click on its label.</string>
     <string name="w_processes_select_some_process">Please select some process(es).</string>
     <string name="w_help_title">Some explanations?</string>
-    <string name="w_help_text">TODO</string>
+    <string name="w_help_text">TODO?</string>
     <string name="menu_record">Record</string>
     <string name="menu_record_description">Starts recording memory and CPU parameters in the background</string>
     <string name="menu_record_stop_description">Stops recording and saves CSV file</string>

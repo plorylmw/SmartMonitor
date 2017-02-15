@@ -146,23 +146,7 @@ public class ActivityMain extends Activity {
             };
             mThread.start();
         }
-    }/*, drawRunnableGraphic = new Runnable() {
-		@Override
-		public void run() {
-			Canvas canvas;
-			Thread thisThread = Thread.currentThread();
-			while (drawThread == thisThread) {
-				canvas = mVG.lockCanvas();
-				mVG.onDrawCustomised(canvas);
-				mVG.unlockCanvasAndPost(canvas);
-				try {
-					Thread.sleep(intervalUpdate);
-				} catch (InterruptedException e) {
-					break;
-				}
-			}
-		}
-	}*/;
+    };
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @SuppressLint("NewApi")
@@ -179,7 +163,6 @@ public class ActivityMain extends Activity {
 
             switchParameter(cpuTotal, mLCPUTotal);
             switchParameter(cpuAM, mLCPUAM);
-
             switchParameter(memUsed, mLMemUsed);
             switchParameter(memAvailable, mLMemAvailable);
             switchParameter(memFree, mLMemFree);

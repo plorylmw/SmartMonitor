@@ -514,7 +514,7 @@ public class ActivityMain extends Activity {
         mLGraphicSurface.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showSettings();
+                //showSettings();
             }
         });
         mLGraphicSurface.setOnLongClickListener(new View.OnLongClickListener() {
@@ -718,7 +718,7 @@ public class ActivityMain extends Activity {
         mCloseSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hideSettings();
+                //hideSettings();
 
                 int intervalWidth = 0, intervalRead = 0, intervalUpdate = 0;
 

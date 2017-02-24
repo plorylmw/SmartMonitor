@@ -26,11 +26,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
 import java.text.DecimalFormat;
@@ -62,7 +61,7 @@ public class ServiceReader extends Service {
     private NotificationManager mNM;
     private Notification mNotificationRead, mNotificationRecord;
     private BufferedReader reader;
-    private BufferedWriter mW;
+    private FileOutputStream mW;
     private File mFile;
     private SharedPreferences mPrefs;
     private Runnable readRunnable = new Runnable() { // http://docs.oracle.com/javase/8/docs/technotes/guides/concurrency/threadPrimitiveDeprecation.html
@@ -435,13 +434,26 @@ public class ServiceReader extends Service {
     @SuppressWarnings("unchecked")
     private void record() {
         if (mW == null) {
+            String folderName = null;
+            String fileName = null;
+            if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+            {
+                String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+                if(path != null)
+                    folderName = path + "/SmartMonitor/";
+                File fileRobo = new File(folderName);
 
-            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/SmartMonitor");
-            dir.mkdirs();
-            mFile = new File(dir, new StringBuilder().append(getString(R.string.app_name)).append("Record-").append(getDate()).append(".csv").toString());
+                if(!fileRobo.exists())
+                {
+                    fileRobo.mkdir();
+                }
+                fileName = folderName + getString(R.string.app_name) + "Record-" + getDate() + ".csv";
+                mFile = new File(fileName);
+            }
 
             try {
-                mW = new BufferedWriter(new FileWriter(mFile));
+                //mW = new BufferedWriter(new FileWriter(mFile));
+                mW = new FileOutputStream(mFile, false);
             } catch (IOException e) {
                 notifyError(e);
                 return;
@@ -464,9 +476,9 @@ public class ServiceReader extends Service {
                         sb.append(",").append(p.get(C.pAppName)).append(" (Pid ").append(p.get(C.pId)).append(") CPU usage (%)")
                                 .append(",").append(p.get(C.pAppName)).append(" Memory (kB)");
 
-                sb.append(",,Memory used (kB),Memory available (MemFree+Cached) (kB),MemFree (kB),Cached (kB),Threshold (kB)");
+                sb.append(",,Memory used (kB),Memory available (MemFree+Cached) (kB),MemFree (kB),Cached (kB),Threshold (kB),DATE");
 
-                mW.write(sb.toString());
+                mW.write(sb.toString().getBytes());
                 mNM.notify(10, mNotificationRecord);
                 topRow = false;
             }
@@ -487,9 +499,10 @@ public class ServiceReader extends Service {
                     .append(",").append(memAvailable.get(0))
                     .append(",").append(memFree.get(0))
                     .append(",").append(cached.get(0))
-                    .append(",").append(threshold.get(0));
+                    .append(",").append(threshold.get(0))
+                    .append(",").append(getDate());
 
-            mW.write(sb.toString());
+            mW.write(sb.toString().getBytes());
         } catch (IOException e) {
             notifyError(e);
             return;

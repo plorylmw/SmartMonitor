@@ -1,7 +1,7 @@
 # SmartMonitor
 # 创新项目智能手机应用管理工具
 
-<img align="center" src="http://okuo92sn2.bkt.clouddn.com/test.png" width="180px" height="300px" />
+<img align="center" src="http://okuo92sn2.bkt.clouddn.com/test0.png" width="180px" height="300px" />
 <img align="center" src="http://okuo92sn2.bkt.clouddn.com/test2.png" width="180px" height="300px" />
 <img align="center" src="http://okuo92sn2.bkt.clouddn.com/test1.png" width="180px" height="300px" />
 

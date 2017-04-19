@@ -31,10 +31,12 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -119,12 +121,61 @@ public class ServiceReader extends Service {
         }
     }
 
+    private void createTestFile() {
+        try {
+            FileOutputStream fos = openFileOutput("dataTest.txt", Context.MODE_PRIVATE);
+            String string = "calendar\nclock";
+            fos.write(string.getBytes());
+        }
+        catch (Exception ex) {
+        }
 
+        StringBuilder sb = new StringBuilder();
+        try {
+            FileInputStream fis = openFileInput("dataTest.txt");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader bufferedReader = new BufferedReader(isr);
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                sb.append(line);
+                sb.append(" ");
+            }
+        }
+        catch (Exception ex) {
+        }
 
+        String folderName = null;
+        String fileName = null;
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
+        {
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath();
+            if(path != null)
+                folderName = path + "/SmartMonitor/";
+            File fileRobo = new File(folderName);
 
+            if(!fileRobo.exists())
+            {
+                fileRobo.mkdir();
+            }
+            fileName = folderName + getString(R.string.app_name) + "test.txt";
+            mFile = new File(fileName);
+        }
+
+        try {
+            //mW = new BufferedWriter(new FileWriter(mFile));
+            mW = new FileOutputStream(mFile, false);
+            mW.write(sb.toString().getBytes());
+            mW.flush();
+        } catch (IOException e) {
+            notifyError(e);
+            return;
+        }
+    }
 
     @Override
     public void onCreate() {
+        createTestFile();
+
         cpuTotal = new ArrayList<Float>(maxSamples);
         cpuAM = new ArrayList<Float>(maxSamples);
         memoryAM = new ArrayList<Integer>(maxSamples);
@@ -515,46 +566,7 @@ public class ServiceReader extends Service {
     }
 
 
-    private void doStartApplicationWithPackageName(String packagename) {
 
-        // 通过包名获取此APP详细信息，包括Activities、services、versioncode、name等等
-        PackageInfo packageinfo = null;
-        try {
-            packageinfo = getPackageManager().getPackageInfo(packagename, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        if (packageinfo == null) {
-            return;
-        }
-
-        // 创建一个类别为CATEGORY_LAUNCHER的该包名的Intent
-        Intent resolveIntent = new Intent(Intent.ACTION_MAIN, null);
-        resolveIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-        resolveIntent.setPackage(packageinfo.packageName);
-
-        // 通过getPackageManager()的queryIntentActivities方法遍历
-        List<ResolveInfo> resolveinfoList = getPackageManager()
-                .queryIntentActivities(resolveIntent, 0);
-
-        ResolveInfo resolveinfo = resolveinfoList.iterator().next();
-        if (resolveinfo != null) {
-            // packagename = 参数packname
-            String packageName = resolveinfo.activityInfo.packageName;
-            // 这个就是我们要找的该APP的LAUNCHER的Activity[组织形式：packagename.mainActivityname]
-            String className = resolveinfo.activityInfo.name;
-            // LAUNCHER Intent
-            Intent intent = new Intent(Intent.ACTION_MAIN);
-            intent.addCategory(Intent.CATEGORY_LAUNCHER);
-
-            // 设置ComponentName参数1:packagename参数2:MainActivity路径
-            ComponentName cn = new ComponentName(packageName, className);
-
-            intent.setComponent(cn);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        }
-    }
 
 
 
@@ -566,7 +578,7 @@ public class ServiceReader extends Service {
             mW.close();
             mW = null;
 
-            doStartApplicationWithPackageName("com.android.calendar");
+            //doStartApplicationWithPackageName("com.android.calendar");
 
             // http://stackoverflow.com/questions/13737261/nexus-4-not-showing-files-via-mtp
 //			MediaScannerConnection.scanFile(this, new String[] { mFile.getAbsolutePath() }, null, null);

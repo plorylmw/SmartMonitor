@@ -29,7 +29,7 @@
     <string name="w_main_mp_button_text">Alright</string>
     <string name="w_processes_dead">DEAD</string>
     <string name="w_processes_dead_notification">Process dead</string>
-    <string name="w_processes_title">Processes</string>
+    <string name="w_processes_title">Choose an app</string>
     <string name="w_processes_empty">Ouch! There was some problem when retrieving the system processes.</string>
     <string name="w_processes_android_51_problem"><big><b>Ouch!</b></big>
 		\n\nFor Android 5.1.1+ the processes list doesn\'t work anymore.
@@ -47,7 +47,7 @@
     <string name="menu_help">Help</string>
     <string name="menu_about">About</string>
     <string name="menu_close">Close</string>
-    <string name="button_ok">OK</string>
+    <string name="button_ok">back</string>
     <string name="button_cancel">Cancel</string>
     <string name="button_reset">Reset to Defaults</string>
     <string name="graphic_update_interval">Update interval</string>

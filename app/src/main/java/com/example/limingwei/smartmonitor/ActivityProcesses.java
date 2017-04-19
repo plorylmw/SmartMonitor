@@ -7,17 +7,21 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Process;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -37,6 +41,12 @@ import android.widget.Toast;
 
 import com.jaredrummler.android.processes.ProcessManager;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,14 +74,67 @@ public class ActivityProcesses extends Activity {
         }
     };
 
+    private ArrayList<String> apps = new ArrayList<>();
+    void readFromFile() {
+        try {
+            FileInputStream fis = openFileInput("dataTest.txt");
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader bufferedReader = new BufferedReader(isr);
+            String line;
+            while ((line = bufferedReader.readLine()) != null)
+                apps.add(line);
+        }
+        catch (Exception ex) {
+        }
+    }
 
+    private void doStartApplicationWithPackageName(String packagename) {
 
+        // 通过包名获取此APP详细信息，包括Activities、services、versioncode、name等等
+        PackageInfo packageinfo = null;
+        try {
+            packageinfo = getPackageManager().getPackageInfo(packagename, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (packageinfo == null) {
+            return;
+        }
 
+        // 创建一个类别为CATEGORY_LAUNCHER的该包名的Intent
+        Intent resolveIntent = new Intent(Intent.ACTION_MAIN, null);
+        resolveIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        resolveIntent.setPackage(packageinfo.packageName);
+
+        // 通过getPackageManager()的queryIntentActivities方法遍历
+        List<ResolveInfo> resolveinfoList = getPackageManager()
+                .queryIntentActivities(resolveIntent, 0);
+
+        ResolveInfo resolveinfo = resolveinfoList.iterator().next();
+        if (resolveinfo != null) {
+            // packagename = 参数packname
+            String packageName = resolveinfo.activityInfo.packageName;
+            // 这个就是我们要找的该APP的LAUNCHER的Activity[组织形式：packagename.mainActivityname]
+            String className = resolveinfo.activityInfo.name;
+            // LAUNCHER Intent
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+            // 设置ComponentName参数1:packagename参数2:MainActivity路径
+            ComponentName cn = new ComponentName(packageName, className);
+
+            intent.setComponent(cn);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+    }
 
     @SuppressLint({ "InlinedApi", "NewApi" })
     @SuppressWarnings("unchecked")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        readFromFile();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_processes);
         final Resources res = getResources();
@@ -141,8 +204,10 @@ public class ActivityProcesses extends Activity {
                         if (name == null)
                             name = p.processName;
 
-                        mListProcesses.add(mapDataForPlacesList(false, name, String.valueOf(p.pid), p.pkgList != null && p.pkgList.length > 0 ? p.pkgList[0] : p.processName, p.processName));
-                    }
+                        //if (apps.contains(name))
+                            mListProcesses.add(mapDataForPlacesList(false, name, String.valueOf(p.pid), p.pkgList != null && p.pkgList.length > 0 ? p.pkgList[0] : p.processName, p.processName));
+
+                       }
                 }
 
                 Collections.sort(mListProcesses, new Comparator<Map<String, Object>>(){
@@ -169,6 +234,10 @@ public class ActivityProcesses extends Activity {
                 mLV.setVisibility(View.GONE);
                 findViewById(R.id.LProcessesProblem).setVisibility(View.VISIBLE);
             }
+/*
+            for (String i : apps) {
+                mListProcesses.add(mapDataForPlacesList(false, i, i, i, i));
+            }*/
         }
 
 
@@ -188,7 +257,7 @@ public class ActivityProcesses extends Activity {
         mLV.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                SimpleAdapterCustomised.Tag tag = (SimpleAdapterCustomised.Tag) view.getTag();
+ /*             SimpleAdapterCustomised.Tag tag = (SimpleAdapterCustomised.Tag) view.getTag();
                 tag.selected = !tag.selected;
                 Map<String, Object> newEntry = new HashMap<String, Object>();
                 newEntry.put(C.pId, mListProcesses.get(position).get(C.pId));
@@ -206,18 +275,23 @@ public class ActivityProcesses extends Activity {
 
                 mListProcesses.get(position).put(C.pSelected, tag.selected);
                 mSA.notifyDataSetChanged();
+*/
+                doStartApplicationWithPackageName(mListProcesses.get(position).get(C.pName).toString());
+
+                finish();
             }
         });
 
         findViewById(R.id.BOK).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mListSelected.size() != 0) {
+                /*if (mListSelected.size() != 0) {
                     setResult(1, new Intent(ActivityProcesses.this, ActivityMain.class).putExtra(C.listSelected, (Serializable) mListSelected));
                     finish();
                 } else {
                     Toast.makeText(ActivityProcesses.this, getString(R.string.w_processes_select_some_process), Toast.LENGTH_SHORT).show();
-                }
+                }*/
+                finish();
             }
         });
     }

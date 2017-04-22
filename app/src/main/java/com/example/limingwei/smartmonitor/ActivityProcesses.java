@@ -11,6 +11,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -192,7 +193,7 @@ public class ActivityProcesses extends Activity {
 
             if (runningAppProcesses != null) {
                 int pid = Process.myPid();
-                for (ActivityManager.RunningAppProcessInfo p : runningAppProcesses) {
+/*                for (ActivityManager.RunningAppProcessInfo p : runningAppProcesses) {
                     if (pid != p.pid) {
                         String name = null;
                         try {
@@ -207,7 +208,17 @@ public class ActivityProcesses extends Activity {
                         //if (apps.contains(name))
                             mListProcesses.add(mapDataForPlacesList(false, name, String.valueOf(p.pid), p.pkgList != null && p.pkgList.length > 0 ? p.pkgList[0] : p.processName, p.processName));
 
-                       }
+                       }*/
+                for (String pkgName : apps) {
+                    String name = null;
+                    try {
+                        name = (String) pm.getApplicationLabel(pm.getApplicationInfo(pkgName, 0));
+                    } catch (NameNotFoundException e) {
+                        name = "unknown";
+                    } catch (NotFoundException e) {
+                        name = "unknown";
+                    }
+                    mListProcesses.add(mapDataForPlacesList(false, name, "0", pkgName, pkgName));
                 }
 
                 Collections.sort(mListProcesses, new Comparator<Map<String, Object>>(){
@@ -359,7 +370,7 @@ public class ActivityProcesses extends Activity {
             } catch (NameNotFoundException e) {
             }
             tag.tvPAppName.setText((String) mListProcesses.get(position).get(C.pAppName));
-            tag.tvPName.setText(mListProcesses.get(position).get(C.pName) + " - Pid: " + mListProcesses.get(position).get(C.pId));
+            tag.tvPName.setText(mListProcesses.get(position).get(C.pName).toString());
 
             return view;
         }

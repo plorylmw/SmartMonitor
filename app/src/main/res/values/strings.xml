@@ -9,7 +9,7 @@
     <string name="notify_toast_saved">saved in the folder \'SmartMonitor\'.</string>
     <string name="notify_toast_error">An error happened when saving the CSV file:</string>
     <string name="notify_toast_error_2">It hasn\'t been possible to start recording:</string>
-    <string name="w_main_choose_process">Choose other process(es)</string>
+    <string name="w_main_choose_process">Run a process</string>
     <string name="w_main_processes">Processes</string>
     <string name="w_main_memory">Memory</string>
     <string name="w_main_hide">Hide</string>

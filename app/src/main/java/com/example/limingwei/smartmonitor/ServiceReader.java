@@ -124,7 +124,7 @@ public class ServiceReader extends Service {
     private void createTestFile() {
         try {
             FileOutputStream fos = openFileOutput("dataTest.txt", Context.MODE_PRIVATE);
-            String string = "calendar\nclock";
+            String string = "com.android.calendar\ncom.android.deskclock";
             fos.write(string.getBytes());
         }
         catch (Exception ex) {

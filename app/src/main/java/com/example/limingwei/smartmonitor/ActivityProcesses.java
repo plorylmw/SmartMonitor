@@ -193,7 +193,7 @@ public class ActivityProcesses extends Activity {
 
             if (runningAppProcesses != null) {
                 int pid = Process.myPid();
-/*                for (ActivityManager.RunningAppProcessInfo p : runningAppProcesses) {
+                /*for (ActivityManager.RunningAppProcessInfo p : runningAppProcesses) {
                     if (pid != p.pid) {
                         String name = null;
                         try {
@@ -206,9 +206,10 @@ public class ActivityProcesses extends Activity {
                             name = p.processName;
 
                         //if (apps.contains(name))
-                            mListProcesses.add(mapDataForPlacesList(false, name, String.valueOf(p.pid), p.pkgList != null && p.pkgList.length > 0 ? p.pkgList[0] : p.processName, p.processName));
+                        mListProcesses.add(mapDataForPlacesList(false, name, String.valueOf(p.pid), p.pkgList != null && p.pkgList.length > 0 ? p.pkgList[0] : p.processName, p.processName));
 
-                       }*/
+                    }
+                }*/
                 for (String pkgName : apps) {
                     String name = null;
                     try {

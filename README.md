@@ -10,4 +10,4 @@ SmartMonitor monitors and records the CPU and memory usage of Android devices.
 ## 指导老师:
 ### 李文中
 ## 小组成员:
-### 李明威、刘芸滔、刘雅辉、李鹏飞
+### 李明威、刘雅辉、刘芸滔、李鹏飞
